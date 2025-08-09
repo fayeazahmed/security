@@ -11,7 +11,16 @@
 			<form id="login-form">
 				<input type="text" id="username" placeholder="Username" required />
 				<input type="password" id="password" placeholder="Password" required />
-				<button type="submit">Login</button>
+				<div id="button-container">
+					<button type="submit">Login</button>
+					<button
+						type="button"
+						id="github-login-btn"
+						onclick="location.href='http://localhost:8080/oauth2/authorization/github'"
+					>
+						Login With GitHub
+					</button>
+				</div>
 			</form>
 			<div id="error-message"></div>
 		</div>

@@ -49,3 +49,7 @@ button:hover {
 #login-form {
 	text-align: left;
 }
+
+#github-login-btn {
+	background-color: #0d1117;
+}

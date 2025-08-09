@@ -74,6 +74,18 @@ async function fetchUser(token) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const response = await fetch("http://localhost:8080/api/oauth2", {
+            method: "GET",
+            credentials: "include",
+        })
+        const user = await response.json();
+        console.log(user);
+        showAuthenticated(user.login);
+    } catch (e) {
+        console.log(e);
+    }
+
     const token = localStorage.getItem(JWT);
     if (token) {
         try {
@@ -82,8 +94,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             showAuthenticated(user.username);
         } catch (err) {
             console.error("Failed to load user:", err);
-            // Optional: remove invalid token or show login page
-            localStorage.removeItem("jwt");
+            localStorage.removeItem(JWT);
         }
     }
 });
