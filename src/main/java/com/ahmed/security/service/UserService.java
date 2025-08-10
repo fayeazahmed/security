@@ -1,15 +1,19 @@
 package com.ahmed.security.service;
 
+import com.ahmed.security.exception.BadRequestException;
 import com.ahmed.security.model.Role;
 import com.ahmed.security.model.User;
 import com.ahmed.security.repository.RoleRepository;
 import com.ahmed.security.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -18,41 +22,45 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public User getUserFromOAuth2User(DefaultOAuth2User oauth2User) {
-        String githubUsername = oauth2User.getAttributes().get("login").toString();
-        String githubId = oauth2User.getAttributes().get("id").toString();
-
-        Optional<User> optionalUser = userRepository.findByUsername(githubUsername);
+    @Transactional
+    public User authenticateOAuth2User(OAuth2User oauthUser, String registrationId) {
+        String username = getUsername(oauthUser, registrationId);
+        Optional<User> optionalUser = userRepository.findByUsername(username);
         if(optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            if(user.getGithubId() == null) {
-                return createFromOAuth2User(githubUsername, githubId, true);
-            }
-            if(user.getGithubId().equals(githubId)) {
-                return user;
-            }
-            return getUser(githubUsername, githubId);
-        } else {
-            return createFromOAuth2User(githubUsername, githubId, false);
+            return optionalUser.get();
         }
-    }
 
-    private User getUser(String githubUsername, String githubId) {
-        return createFromOAuth2User(githubUsername, githubId, true);
-    }
-
-    private User createFromOAuth2User(String githubUsername, String githubId, boolean userExists) {
         List<Role> roles = roleRepository.findByNameIn(
-                List.of(com.ahmed.security.enums.Role.ROLE_USER)
+                List.of(com.ahmed.security.enums.Role.ROLE_USER, com.ahmed.security.enums.Role.ROLE_OAUTH2_USER)
         );
-        String username = userExists ? githubUsername + "_" + githubId : githubUsername;
+        return createUser(username, roles);
+    }
 
-        return User.builder()
-                .username(username)
-                .password("")
-                .githubId(githubId)
-                .roles(roles)
-                .build();
+    private User createUser(String username, List<Role> roles) {
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode("123456"));
+        user.setRoles(roles);
+
+        log.info("Creating user -> {}", user);
+        return userRepository.save(user);
+    }
+
+    private String getUsername(OAuth2User oauthUser, String registrationId) {
+        if(registrationId.equals("github")) {
+            String oauth2Login = oauthUser.getAttribute("login");
+            String oauth2Id = Objects.requireNonNull(oauthUser.getAttribute("id")).toString();
+            return oauth2Login + oauth2Id;
+        }
+        if(registrationId.equals("google")) {
+            String email = oauthUser.getAttribute("email");
+            int atIndex = Objects.requireNonNull(email).indexOf('@');
+            String oauth2Login = atIndex != -1 ? email.substring(0, atIndex) : email;
+            String oauth2Id = Objects.requireNonNull(oauthUser.getAttribute("sub")).toString();
+            return oauth2Login + oauth2Id;
+        }
+        return "";
     }
 }

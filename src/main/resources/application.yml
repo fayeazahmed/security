@@ -27,8 +27,14 @@ spring:
             client-id: Ov23liPJ7UUhJPIZDAcC
             client-secret: dd075656a5a6502084940598af01810ef39e097c
             scope: read:user
+          google:
+            client-id: 80755201811-hu4gbomktre2jil7n3o5m9pjdfv0bd53.apps.googleusercontent.com
+            client-secret: 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
+            scope: openid, profile, email
         provider:
           github:
             authorization-uri: https://github.com/login/oauth/authorize
             token-uri: https://github.com/login/oauth/access_token
             user-info-uri: https://api.github.com/user
+          google:
+            issuer-uri: https://accounts.google.com

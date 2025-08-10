@@ -27,7 +27,9 @@ public class DatabaseInitializer implements CommandLineRunner {
             roleAdmin.setName(com.ahmed.security.enums.Role.ROLE_ADMIN);
             Role roleUser = new Role();
             roleUser.setName(com.ahmed.security.enums.Role.ROLE_USER);
-            roleRepository.saveAll(List.of(roleAdmin, roleUser));
+            Role roleOAuth2User = new Role();
+            roleOAuth2User.setName(com.ahmed.security.enums.Role.ROLE_OAUTH2_USER);
+            roleRepository.saveAll(List.of(roleAdmin, roleUser, roleOAuth2User));
 
             User admin = new User();
             admin.setUsername("admin");

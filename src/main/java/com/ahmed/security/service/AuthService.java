@@ -20,6 +20,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,20 +36,25 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
+    @Transactional
     public AuthResponseDto authenticate(UserAuthDto userAuthDto) {
         if (!userRepository.existsByUsername(userAuthDto.getUsername())) {
-            User user = new User();
-            user.setUsername(userAuthDto.getUsername());
-            user.setPassword(passwordEncoder.encode(userAuthDto.getPassword()));
             List<Role> roles = roleRepository.findByNameIn(
                     List.of(com.ahmed.security.enums.Role.ROLE_USER)
             );
-            user.setRoles(roles);
-
-            userRepository.save(user);
+            User user = createUser(userAuthDto.getUsername(), userAuthDto.getPassword(), roles);
             log.info("New user created: {}", user);
         }
         return getAuthenticationResponse(userAuthDto);
+    }
+
+    private User createUser(String username, String password, List<Role> roles) {
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRoles(roles);
+
+        return userRepository.save(user);
     }
 
     private AuthResponseDto getAuthenticationResponse(UserAuthDto userAuthDto) {

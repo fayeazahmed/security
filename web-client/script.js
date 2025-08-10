@@ -39,9 +39,17 @@ async function login(e) {
     }
 }
 
-logoutBtn.addEventListener("click", () => {
+logoutBtn.addEventListener("click", async () => {
     localStorage.removeItem(JWT);
-    showLogin();
+    try {
+        await fetch(API_URL + "/logout", {
+            method: "GET",
+            credentials: "include",
+        })
+    } catch (e) {
+        console.error(e);
+    }
+    window.location.href = "/";
 });
 
 function showAuthenticated(username) {
@@ -75,13 +83,13 @@ async function fetchUser(token) {
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        const response = await fetch("http://localhost:8080/api/oauth2", {
+        const response = await fetch(API_URL + "/authenticate", {
             method: "GET",
             credentials: "include",
         })
         const user = await response.json();
         console.log(user);
-        showAuthenticated(user.login);
+        showAuthenticated(user.username);
     } catch (e) {
         console.log(e);
     }

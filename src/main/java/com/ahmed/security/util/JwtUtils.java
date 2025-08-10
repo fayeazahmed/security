@@ -1,12 +1,14 @@
 package com.ahmed.security.util;
 
 import com.ahmed.security.config.UserDetailsImpl;
+import com.ahmed.security.model.User;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,10 +26,21 @@ public class JwtUtils {
     @Value("${spring.jwt.secret}")
     private String jwtSecret;
 
-    public String getJwtFromHeader(HttpServletRequest request) {
+    public String getJwt(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
+        }
+        return getJwtFromCookie(request);
+    }
+
+    private String getJwtFromCookie(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("JWT_TOKEN".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
         }
         return null;
     }
@@ -36,6 +49,19 @@ public class JwtUtils {
         String username = userDetails.getUsername();
         String roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+        return Jwts.builder()
+                .subject(username)
+                .claim("roles", roles)
+                .issuedAt(new Date())
+                .signWith(key())
+                .compact();
+    }
+
+    public String generateTokenFromOAuth2User(User user) {
+        String username = user.getUsername();
+        String roles = user.getRoles().stream()
+                .map(role -> role.getName().toString())
                 .collect(Collectors.joining(","));
         return Jwts.builder()
                 .subject(username)

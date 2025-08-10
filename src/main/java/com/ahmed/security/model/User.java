@@ -31,8 +31,6 @@ public class User implements Serializable {
     @JsonIgnore
     private String password;
 
-    private String githubId;
-
     @Builder.Default
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(
