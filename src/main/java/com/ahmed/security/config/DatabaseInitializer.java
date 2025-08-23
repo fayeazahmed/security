@@ -5,6 +5,7 @@ import com.ahmed.security.model.User;
 import com.ahmed.security.repository.RoleRepository;
 import com.ahmed.security.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,9 @@ public class DatabaseInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${DEFAULT_CREDENTIALS}")
+    private String defaultCredentials;
+
     @Transactional
     @Override
     public void run(String... args) {
@@ -32,8 +36,8 @@ public class DatabaseInitializer implements CommandLineRunner {
             roleRepository.saveAll(List.of(roleAdmin, roleUser, roleOAuth2User));
 
             User admin = new User();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("admin"));
+            admin.setUsername(defaultCredentials);
+            admin.setPassword(passwordEncoder.encode(defaultCredentials));
             admin.setRoles(roleRepository.findByNameIn(
                     List.of(com.ahmed.security.enums.Role.ROLE_ADMIN, com.ahmed.security.enums.Role.ROLE_USER)
             ));

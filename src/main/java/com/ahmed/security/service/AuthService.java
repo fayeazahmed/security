@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -38,7 +37,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponseDto authenticate(UserAuthDto userAuthDto) {
-        if (!userRepository.existsByUsername(userAuthDto.getUsername())) {
+        if (Boolean.FALSE.equals(userRepository.existsByUsername(userAuthDto.getUsername()))) {
             List<Role> roles = roleRepository.findByNameIn(
                     List.of(com.ahmed.security.enums.Role.ROLE_USER)
             );
@@ -74,7 +73,7 @@ public class AuthService {
 
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
+                .toList();
 
         return new AuthResponseDto(userDetails.getId(), userDetails.getUsername(), jwtToken, roles);
     }

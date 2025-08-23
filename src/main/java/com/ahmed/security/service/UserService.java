@@ -1,12 +1,12 @@
 package com.ahmed.security.service;
 
-import com.ahmed.security.exception.BadRequestException;
 import com.ahmed.security.model.Role;
 import com.ahmed.security.model.User;
 import com.ahmed.security.repository.RoleRepository;
 import com.ahmed.security.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
@@ -23,6 +23,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${DEFAULT_CREDENTIALS}")
+    private String defaultCredentials;
 
     @Transactional
     public User authenticateOAuth2User(OAuth2User oauthUser, String registrationId) {
@@ -41,7 +44,7 @@ public class UserService {
     private User createUser(String username, List<Role> roles) {
         User user = new User();
         user.setUsername(username);
-        user.setPassword(passwordEncoder.encode("123456"));
+        user.setPassword(passwordEncoder.encode(defaultCredentials));
         user.setRoles(roles);
 
         log.info("Creating user -> {}", user);

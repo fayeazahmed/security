@@ -1,6 +1,6 @@
 package com.ahmed.security.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,12 +22,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
-    @Autowired
-    private AuthTokenFilter authTokenFilter;
-
-    @Autowired
-    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final AuthTokenFilter authTokenFilter;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     private static final String[] AUTH_WHITELIST = {
             "/v3/api-docs/**",
@@ -43,7 +41,7 @@ public class SecurityConfig {
         http.sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         );
-        http.authorizeHttpRequests((requests)
+        http.authorizeHttpRequests(requests
                 -> requests
                 .requestMatchers(AUTH_WHITELIST).permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/authenticate").permitAll()
